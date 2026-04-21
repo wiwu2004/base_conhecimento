@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Indra — Base de Conhecimento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── RESET ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ── TOKENS ── */
+    :root {
+      --bg:       #0b1929;
+      --surf:     #112236;
+      --surf2:    #162c44;
+      --bdr:      #1d3a55;
+      --bdr2:     #265070;
+      --teal:     #00627a;
+      --teal-d:   #00506a;
+      --blue:     #3d9bd4;
+      --blue-lt:  #5fb3e8;
+      --blue-dim: rgba(61,155,212,.15);
+      --green:    #2e9e72;
+      --green-lt: #3dbf8a;
+      --green-dim:rgba(46,158,114,.15);
+      --wh:       #ffffff;
+      --w80:      rgba(255,255,255,.82);
+      --w55:      rgba(255,255,255,.55);
+      --w20:      rgba(255,255,255,.14);
+      --fh:       'Barlow Condensed', sans-serif;
+      --fb:       'Barlow', sans-serif;
+      --tr:       .2s cubic-bezier(.4,0,.2,1);
+    }
+
+    body {
+      font-family: var(--fb);
+      background: var(--bg);
+      color: var(--wh);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    .hdr {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(11,25,41,.96);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--bdr);
+    }
+    .hdr-in {
+      max-width: 1140px; margin: 0 auto;
+      padding: 0 28px; height: 64px;
+      display: flex; align-items: center; gap: 0;
+    }
+
+    /* Logo */
+    .logo {
+      display: flex; align-items: center; gap: 14px;
+      text-decoration: none; color: var(--wh); flex-shrink: 0;
+      margin-right: 32px;
+    }
+    .logo-pill {
+      background: var(--teal); border-radius: 5px;
+      padding: 8px 15px; display: flex; align-items: center;
+      transition: background var(--tr);
+    }
+    .logo:hover .logo-pill { background: var(--teal-d); }
+    .logo-pill span {
+      font-family: var(--fb); font-size: 18px; font-weight: 700;
+      letter-spacing: -.01em; color: #fff; line-height: 1;
+    }
+    .logo-vl { width: 1px; height: 28px; background: var(--bdr); flex-shrink: 0; }
+    .logo-mod {
+      font-family: var(--fh); font-size: 13px; font-weight: 500;
+      color: var(--w55); letter-spacing: .08em; text-transform: uppercase;
+    }
+
+    /* ── ABAS DO HEADER ── */
+    .hdr-tabs {
+      display: flex; align-items: stretch; height: 64px; flex: 1; gap: 0;
+    }
+    .hdr-tab {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 22px; cursor: pointer;
+      font-family: var(--fh); font-size: 13px; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--w55);
+      border-bottom: 2px solid transparent;
+      transition: color var(--tr), border-color var(--tr), background var(--tr);
+      position: relative; top: 1px; /* alinha com border-bottom do header */
+    }
+    .hdr-tab:hover { color: var(--wh); background: var(--w20); }
+    .hdr-tab.active { color: var(--wh); }
+    .hdr-tab.audit.active  { border-color: var(--blue); color: var(--blue-lt); }
+    .hdr-tab.modelo.active { border-color: var(--green); color: var(--green-lt); }
+
+    .tab-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      flex-shrink: 0; opacity: .5;
+      transition: opacity var(--tr);
+    }
+    .hdr-tab.active .tab-dot { opacity: 1; }
+    .hdr-tab.audit  .tab-dot { background: var(--blue); }
+    .hdr-tab.modelo .tab-dot { background: var(--green); }
+
+    /* breadcrumb (lado direito) */
+    #breadcrumb {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 6px; font-size: 13px;
+    }
+    .bc {
+      cursor: pointer; padding: 4px 12px; border-radius: 20px;
+      color: var(--w55); transition: background var(--tr), color var(--tr);
+    }
+    .bc:hover { background: var(--w20); color: var(--wh); }
+    .bc-on { color: var(--blue); font-weight: 600; }
+    .bc-on-g { color: var(--green-lt); font-weight: 600; }
+    .bc-sep { color: var(--bdr2); }
+
+    /* ── MAIN ── */
+    .main { max-width: 1140px; margin: 0 auto; padding: 56px 28px 100px; }
+
+    /* ── TELAS ── */
+    .tela { display: none; }
+    .tela.active { display: block; animation: up .38s ease both; }
+    @keyframes up {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── PAGE HEAD ── */
+    .phead { margin-bottom: 44px; }
+    .eyebrow {
+      font-family: var(--fh); font-size: 11px; font-weight: 600;
+      letter-spacing: .22em; text-transform: uppercase; color: var(--blue);
+      margin-bottom: 10px; display: flex; align-items: center; gap: 10px;
+    }
+    .eyebrow.green { color: var(--green-lt); }
+    .eyebrow::before {
+      content: ''; display: inline-block;
+      width: 20px; height: 2px; background: currentColor; border-radius: 2px;
+    }
+    .ptitle {
+      font-family: var(--fh);
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 700; line-height: 1.08; color: var(--wh);
+      text-transform: uppercase; letter-spacing: .02em; margin-bottom: 12px;
+    }
+    .ptitle .hl  { color: var(--blue); }
+    .ptitle .hlg { color: var(--green-lt); }
+    .ptitle em   { color: var(--blue); font-style: normal; }
+    .ptitle em.g { color: var(--green-lt); }
+    .psub { font-size: 15px; font-weight: 300; color: var(--w55); max-width: 500px; line-height: 1.65; }
+
+    /* ── GRID TIPOLOGIAS ── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .skel {
+      height: 152px;
+      background: linear-gradient(90deg, var(--surf) 25%, var(--surf2) 50%, var(--surf) 75%);
+      background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .card {
+      background: var(--surf); border: 1px solid var(--bdr);
+      border-radius: 6px; padding: 26px 24px 20px;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: background var(--tr), border-color var(--tr), transform var(--tr), box-shadow var(--tr);
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--blue), transparent 80%);
+      transform: scaleX(0); transform-origin: left; transition: transform var(--tr);
+    }
+    .card:hover { background: var(--surf2); border-color: var(--blue); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,.45); }
+    .card:hover::before { transform: scaleX(1); }
+    .card-cod { font-family: var(--fh); font-size: 2.8rem; font-weight: 700; color: var(--wh); line-height: 1; margin-bottom: 4px; letter-spacing: .03em; transition: color var(--tr); }
+    .card:hover .card-cod { color: var(--blue-lt); }
+    .card-nome { font-family: var(--fh); font-size: 10.5px; font-weight: 600; color: var(--w55); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 22px; }
+    .card-ft { display: flex; align-items: center; justify-content: space-between; }
+    .card-tot { font-size: 11px; color: var(--w55); }
+    .card-tot strong { font-family: var(--fh); font-size: 1.6rem; font-weight: 700; color: var(--blue); display: block; line-height: 1; }
+    .card-arr { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--bdr2); display: flex; align-items: center; justify-content: center; font-size: 15px; color: var(--w55); transition: background var(--tr), color var(--tr), border-color var(--tr); }
+    .card:hover .card-arr { background: var(--blue); color: var(--bg); border-color: var(--blue); }
+
+    /* ── TELA PERGUNTAS ── */
+    .btn-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--w55); background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 18px; font-family: var(--fb); transition: color var(--tr); }
+    .btn-back:hover { color: var(--wh); }
+    .badge { display: inline-flex; align-items: center; font-family: var(--fh); font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; background: var(--blue-dim); color: var(--blue-lt); border: 1px solid rgba(61,155,212,.3); padding: 3px 12px; border-radius: 3px; margin-bottom: 12px; }
+    .toolbar { margin-bottom: 30px; }
+    .toggle { display: inline-flex; border: 1px solid var(--bdr); border-radius: 6px; overflow: hidden; }
+    .tgl { background: none; border: none; cursor: pointer; padding: 9px 20px; font-size: 12.5px; font-weight: 500; font-family: var(--fb); color: var(--w55); letter-spacing: .04em; transition: background var(--tr), color var(--tr); }
+    .tgl.active { background: var(--blue); color: var(--bg); }
+    .tgl:not(.active):hover { background: var(--w20); color: var(--wh); }
+
+    /* ── SEÇÕES AUDITORIA ── */
+    .secao { margin-bottom: 44px; animation: up .3s ease both; }
+    .secao-titulo { display: flex; align-items: center; gap: 10px; font-family: var(--fh); font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--blue); margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--bdr); }
+    .secao-titulo::before { content: ''; width: 3px; height: 14px; background: var(--blue); border-radius: 2px; flex-shrink: 0; }
+    .secao-titulo::after { content: ''; flex: 1; }
+    .secao-ct { font-family: var(--fb); font-size: 10.5px; font-weight: 400; color: var(--w55); background: var(--surf); border: 1px solid var(--bdr); padding: 2px 8px; border-radius: 20px; letter-spacing: .02em; text-transform: none; }
+
+    /* ── PERGUNTAS ── */
+    .plist { display: flex; flex-direction: column; gap: 2px; }
+    .pitem { background: var(--surf); border: 1px solid transparent; border-radius: 4px; padding: 14px 18px; cursor: pointer; display: flex; align-items: flex-start; gap: 14px; transition: background var(--tr), border-color var(--tr), transform var(--tr); }
+    .pitem:hover { background: var(--surf2); border-color: var(--bdr); transform: translateX(5px); }
+    .pnum { font-family: var(--fh); font-size: 11px; font-weight: 600; color: var(--w20); min-width: 22px; padding-top: 2px; letter-spacing: .04em; flex-shrink: 0; }
+    .pbody { flex: 1; }
+    .ptexto { font-size: 14px; line-height: 1.6; color: var(--w80); font-weight: 300; transition: color var(--tr); }
+    .pitem:hover .ptexto { color: var(--wh); }
+    .phint { font-family: var(--fh); font-size: 10.5px; font-weight: 700; color: var(--blue); letter-spacing: .1em; text-transform: uppercase; margin-top: 5px; opacity: 0; transition: opacity var(--tr); }
+    .pitem:hover .phint { opacity: 1; }
+    .picon { font-size: 13px; color: var(--bdr2); padding-top: 2px; flex-shrink: 0; transition: color var(--tr); }
+    .pitem:hover .picon { color: var(--blue); }
+    .plist-s .pitem { background: transparent; border-radius: 0; border: none; border-bottom: 1px solid var(--bdr); padding: 13px 4px; }
+    .plist-s .pitem:first-child { border-top: 1px solid var(--bdr); }
+    .plist-s .pitem:hover { background: var(--surf); border-color: var(--bdr); transform: none; padding-left: 14px; }
+
+    /* ═══════════════════════════════════════════════
+       MODELO DE SERVIÇO
+    ═══════════════════════════════════════════════ */
+
+    /* container de seções do modelo */
+    .ms-secoes { display: flex; flex-direction: column; gap: 32px; }
+
+    .ms-secao {
+      background: var(--surf);
+      border: 1px solid var(--bdr);
+      border-radius: 8px;
+      overflow: hidden;
+      animation: up .3s ease both;
+    }
+
+    /* cabeçalho da seção — clicável para colapsar */
+    .ms-secao-hdr {
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px 22px;
+      cursor: pointer;
+      background: var(--surf);
+      border-bottom: 1px solid var(--bdr);
+      transition: background var(--tr);
+      user-select: none;
+    }
+    .ms-secao-hdr:hover { background: var(--surf2); }
+
+    .ms-secao-bar {
+      width: 3px; height: 18px;
+      background: var(--green);
+      border-radius: 2px; flex-shrink: 0;
+    }
+    .ms-secao-nome {
+      font-family: var(--fh); font-size: 12px; font-weight: 700;
+      letter-spacing: .16em; text-transform: uppercase; color: var(--green-lt);
+      flex: 1;
+    }
+    .ms-secao-ct {
+      font-family: var(--fb); font-size: 10.5px; color: var(--w55);
+      background: rgba(46,158,114,.12); border: 1px solid rgba(46,158,114,.25);
+      padding: 2px 10px; border-radius: 20px;
+    }
+    .ms-chevron {
+      color: var(--w55); font-size: 12px;
+      transition: transform var(--tr);
+    }
+    .ms-secao.collapsed .ms-chevron { transform: rotate(-90deg); }
+
+    /* lista de títulos */
+    .ms-titulos {
+      display: flex; flex-direction: column; gap: 0;
+      transition: all var(--tr);
+    }
+    .ms-secao.collapsed .ms-titulos { display: none; }
+
+    .ms-titulo-item {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--bdr);
+      cursor: pointer;
+      transition: background var(--tr), padding-left var(--tr);
+    }
+    .ms-titulo-item:last-child { border-bottom: none; }
+    .ms-titulo-item:hover { background: var(--surf2); padding-left: 28px; }
+
+    .ms-tnum {
+      font-family: var(--fh); font-size: 11px; font-weight: 600;
+      color: var(--w20); min-width: 22px; padding-top: 2px;
+      flex-shrink: 0;
+    }
+    .ms-tbody { flex: 1; }
+    .ms-ttexto {
+      font-size: 14px; line-height: 1.6;
+      color: var(--w80); font-weight: 400;
+      transition: color var(--tr);
+    }
+    .ms-titulo-item:hover .ms-ttexto { color: var(--wh); }
+    .ms-thint {
+      font-family: var(--fh); font-size: 10.5px; font-weight: 700;
+      color: var(--green-lt); letter-spacing: .1em; text-transform: uppercase;
+      margin-top: 4px; opacity: 0; transition: opacity var(--tr);
+    }
+    .ms-titulo-item:hover .ms-thint { opacity: 1; }
+    .ms-ticon { font-size: 13px; color: var(--bdr2); padding-top: 2px; flex-shrink: 0; transition: color var(--tr); }
+    .ms-titulo-item:hover .ms-ticon { color: var(--green); }
+
+    /* ── EMPTY / ERROR ── */
+    .empty { text-align: center; padding: 80px 20px; color: var(--w55); }
+    .empty .ico { font-size: 34px; margin-bottom: 14px; opacity: .35; }
+    .empty h3 { font-family: var(--fh); font-size: 1.3rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--w80); margin-bottom: 8px; }
+    .empty p { font-size: 14px; font-weight: 300; }
+
+    /* ── MODAL ── */
+    .modal-bg { position: fixed; inset: 0; background: rgba(5,12,22,.82); backdrop-filter: blur(8px); z-index: 200; display: none; overflow-y: auto; align-items: flex-start; justify-content: center; padding: 20px; }
+    .modal-bg.open { display: flex; animation: fadein .18s ease; }
+    @keyframes fadein { from { opacity:0 } to { opacity:1 } }
+    .modal { margin: 60px 0; background: var(--surf); border: 1px solid var(--bdr); border-radius: 6px; padding: 36px 36px 32px; max-width: 560px; width: 100%; position: relative; box-shadow: 0 12px 48px rgba(0,0,0,.55); animation: scalein .24s cubic-bezier(.34,1.56,.64,1) both; }
+    .modal.green-modal { border-top: 2px solid var(--green); }
+    .modal.blue-modal  { border-top: 2px solid var(--blue); }
+    @keyframes scalein { from { transform: scale(.93); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-x { position: absolute; top: 14px; right: 14px; background: var(--surf2); border: 1px solid var(--bdr2); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; color: var(--w55); display: flex; align-items: center; justify-content: center; transition: background var(--tr), color var(--tr); }
+    .modal-x:hover { background: var(--blue); color: var(--bg); border-color: var(--blue); }
+    .modal-x.green:hover { background: var(--green); border-color: var(--green); }
+    .modal-tag { font-family: var(--fh); font-size: 10px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--blue); margin-bottom: 14px; }
+    .modal-tag.green { color: var(--green-lt); }
+    .modal-perg { font-family: var(--fh); font-size: 1.25rem; font-weight: 600; line-height: 1.4; color: var(--wh); margin-bottom: 20px; letter-spacing: .01em; }
+    .modal-hr { height: 1px; background: var(--bdr); margin-bottom: 20px; border: none; }
+    .modal-sig { white-space: pre-line; font-size: 14px; line-height: 1.75; color: var(--w80); font-weight: 300; }
+
+    /* ── FOOTER ── */
+    .footer { border-top: 1px solid var(--bdr); padding: 20px 0; }
+    .footer-in { max-width: 1140px; margin: 0 auto; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; }
+    .footer-logo { display: flex; align-items: center; gap: 10px; }
+    .footer-pill { background: var(--teal); border-radius: 3px; padding: 3px 8px; font-size: 11px; font-weight: 700; color: #fff; font-family: var(--fb); }
+    .footer-copy { font-size: 11px; color: var(--w55); font-family: var(--fh); letter-spacing: .06em; }
+    .footer-r { font-size: 11px; color: var(--w20); letter-spacing: .04em; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .main { padding: 36px 16px 64px; }
+      .hdr-in { padding: 0 16px; }
+      .logo-mod, .logo-vl { display: none; }
+      .modal { padding: 28px 20px 24px; margin: 40px 0; }
+      .footer-r { display: none; }
+      .hdr-tab { padding: 0 14px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hdr">
+    <div class="hdr-in">
+
+      <!-- Logo -->
+      <a class="logo" href="#" onclick="irParaHome(); return false;">
+        <div class="logo-pill"><span>indra</span></div>
+        <div class="logo-vl"></div>
+        <span class="logo-mod">Base de Conhecimento</span>
+      </a>
+
+      <!-- Abas -->
+      <div class="hdr-tabs">
+        <div class="hdr-tab audit active" id="tab-audit" onclick="mudarAba('auditoria')">
+          <span class="tab-dot"></span>
+          Auditoria
+        </div>
+        <div class="hdr-tab modelo" id="tab-modelo" onclick="mudarAba('modelo')">
+          <span class="tab-dot"></span>
+          Modelo de Serviço
+        </div>
+      </div>
+
+      <!-- Breadcrumb -->
+      <nav id="breadcrumb"></nav>
+
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ══ TELA: HOME AUDITORIA ══ -->
+    <section id="tela-tipologias" class="tela active">
+      <div class="phead">
+        <p class="eyebrow">Base de Conhecimento</p>
+        <h1 class="ptitle">Guia de <span class="hl">Auditoria</span></h1>
+        <p class="psub">Selecione uma tipologia para explorar perguntas e critérios de avaliação organizados por seção.</p>
+      </div>
+      <div id="tipologias-grid" class="grid">
+        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+      </div>
+    </section>
+
+    <!-- ══ TELA: PERGUNTAS DE UMA TIPOLOGIA ══ -->
+    <section id="tela-perguntas" class="tela">
+      <div class="phead">
+        <button class="btn-back" onclick="voltarAuditoria()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Voltar
+        </button>
+        <div id="tipologia-badge" class="badge"></div>
+        <h2 class="ptitle" id="perguntas-titulo"></h2>
+        <p class="psub" id="perguntas-subtitulo"></p>
+      </div>
+      <div class="toolbar">
+        <div class="toggle">
+          <button class="tgl active" id="btn-agrupado" onclick="setView('agrupado')">Por Seção</button>
+          <button class="tgl" id="btn-lista" onclick="setView('lista')">Lista Simples</button>
+        </div>
+      </div>
+      <div id="perguntas-content"></div>
+    </section>
+
+    <!-- ══ TELA: MODELO DE SERVIÇO ══ -->
+    <section id="tela-modelo" class="tela">
+      <div class="phead">
+        <p class="eyebrow green">Base de Conhecimento</p>
+        <h1 class="ptitle">Modelo de <span class="hlg">Serviço</span></h1>
+        <p class="psub">Estrutura de títulos e critérios organizados por seção para referência de modelos de serviço.</p>
+      </div>
+      <div id="modelo-content">
+        <div class="skel" style="height:120px;margin-bottom:10px"></div>
+        <div class="skel" style="height:120px;margin-bottom:10px"></div>
+        <div class="skel" style="height:80px"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-in">
+      <div class="footer-logo">
+        <span class="footer-pill">indra</span>
+        <span class="footer-copy">Group &copy; 2026</span>
+      </div>
+      <span class="footer-r">Base de Conhecimento</span>
+    </div>
+  </footer>
+
+  <!-- MODAL (reutilizado para auditoria e modelo) -->
+  <div class="modal-bg" id="modal" onclick="fecharModal(event)">
+    <div class="modal blue-modal" id="modal-box">
+      <button class="modal-x" id="modal-x-btn" onclick="fecharModal()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <p class="modal-tag" id="modal-tag-label">Significado</p>
+      <p class="modal-perg" id="modal-pergunta"></p>
+      <hr class="modal-hr"/>
+      <p class="modal-sig" id="modal-significado"></p>
+    </div>
+  </div>
+
+  <script>
+    /* ══════════════════════════════════════════════
+       CONFIG
+    ══════════════════════════════════════════════ */
+    const API_AUDITORIA    = 'http://localhost:8080/api/auditoria';
+    const API_MODELO       = 'http://localhost:8080/api/modelo-servico';
+
+    /* ══════════════════════════════════════════════
+       ESTADO
+    ══════════════════════════════════════════════ */
+    let abaAtiva = 'auditoria'; // 'auditoria' | 'modelo'
+
+    let stateAudit = {
+      tipologiaAtiva: null,
+      nomeAtiva: null,
+      viewMode: 'agrupado',
+      dadosAgrupados: null,
+      dadosLista: null,
+    };
+
+    /* ══════════════════════════════════════════════
+       UTILS
+    ══════════════════════════════════════════════ */
+    const $ = id => document.getElementById(id);
+
+    function mostrarTela(id) {
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+      $(id).classList.add('active');
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function escA(s) {
+      if (!s) return '';
+      return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function emptyHTML(ico, title, msg) {
+      return `<div class="empty" style="grid-column:1/-1">
+        <div class="ico">${ico}</div>
+        <h3>${esc(title)}</h3>
+        ${msg ? `<p>${esc(msg)}</p>` : ''}
+      </div>`;
+    }
+
+    /* ══════════════════════════════════════════════
+       ABAS
+    ══════════════════════════════════════════════ */
+    function mudarAba(aba) {
+      abaAtiva = aba;
+      $('tab-audit').classList.toggle('active', aba === 'auditoria');
+      $('tab-modelo').classList.toggle('active', aba === 'modelo');
+
+      if (aba === 'auditoria') {
+        // volta para home de auditoria
+        stateAudit.tipologiaAtiva = null;
+        mostrarTela('tela-tipologias');
+        setBreadcrumb(null);
+        carregarTipologias();
+      } else {
+        mostrarTela('tela-modelo');
+        setBreadcrumb(null, true);
+        carregarModelo();
+      }
+    }
+
+    function irParaHome() {
+      mudarAba(abaAtiva); // recarrega tela atual
+    }
+
+    /* ══════════════════════════════════════════════
+       BREADCRUMB
+    ══════════════════════════════════════════════ */
+    function setBreadcrumb(cod, isModelo = false) {
+      const nav = $('breadcrumb');
+      if (!cod) { nav.innerHTML = ''; return; }
+      if (isModelo) {
+        nav.innerHTML = `<span class="bc bc-on-g">${esc(cod)}</span>`;
+      } else {
+        nav.innerHTML = `
+          <span class="bc" onclick="voltarAuditoria()">Auditoria</span>
+          <span class="bc-sep">›</span>
+          <span class="bc bc-on">${esc(cod)}</span>`;
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+       AUDITORIA — TIPOLOGIAS
+    ══════════════════════════════════════════════ */
+    async function carregarTipologias() {
+      const g = $('tipologias-grid');
+      if (g.querySelector('.card')) return; // já carregado
+      try {
+        const res = await fetch(`${API_AUDITORIA}/tipologias`);
+        if (!res.ok) throw new Error();
+        renderTipologias(await res.json());
+      } catch {
+        g.innerHTML = emptyHTML('⚠️', 'Não foi possível carregar as tipologias.', 'Verifique se o servidor está disponível.');
+      }
+    }
+
+    function renderTipologias(list) {
+      const g = $('tipologias-grid');
+      g.innerHTML = '';
+      if (!list || list.length === 0) { g.innerHTML = emptyHTML('📋', 'Nenhuma tipologia encontrada', 'O servidor não retornou dados.'); return; }
+      list.forEach((t, i) => {
+        const d = document.createElement('div');
+        d.className = 'card';
+        d.style.animationDelay = `${i * 55}ms`;
+        d.innerHTML = `
+          <div class="card-cod">${esc(t.codigo)}</div>
+          <div class="card-nome">${esc(t.nome)}</div>
+          <div class="card-ft">
+            <div class="card-tot"><strong>${t.totalPerguntas ?? '—'}</strong>perguntas</div>
+            <div class="card-arr">→</div>
+          </div>`;
+        d.addEventListener('click', () => abrirTipologia(t.codigo, t.nome));
+        g.appendChild(d);
+      });
+    }
+
+    /* ── PERGUNTAS ── */
+    async function abrirTipologia(codigo, nome) {
+      stateAudit.tipologiaAtiva = codigo;
+      stateAudit.nomeAtiva = nome;
+      stateAudit.dadosAgrupados = null;
+      stateAudit.dadosLista = null;
+      stateAudit.viewMode = 'agrupado';
+
+      $('tipologia-badge').textContent = codigo;
+      $('perguntas-titulo').innerHTML = `<em>${esc(nome)}</em>`;
+      $('perguntas-subtitulo').textContent = 'Carregando perguntas…';
+      $('perguntas-content').innerHTML = '<div class="skel" style="height:180px;margin-bottom:10px"></div><div class="skel" style="height:120px"></div>';
+      mostrarTela('tela-perguntas');
+      setView('agrupado', true);
+      setBreadcrumb(codigo);
+
+      try {
+        const [ag, ls] = await Promise.all([
+          fetch(`${API_AUDITORIA}/${codigo}/perguntas-por-secao`).then(r => r.ok ? r.json() : Promise.reject(r.status)),
+          fetch(`${API_AUDITORIA}/${codigo}/perguntas`).then(r => r.ok ? r.json() : Promise.reject(r.status)),
+        ]);
+        stateAudit.dadosAgrupados = ag;
+        stateAudit.dadosLista = ls;
+        $('perguntas-subtitulo').textContent = `${ls.length} perguntas em ${ag.length} seções`;
+        renderViewAtual();
+      } catch {
+        $('perguntas-subtitulo').textContent = '';
+        $('perguntas-content').innerHTML = emptyHTML('⚠️', 'Erro ao carregar dados', 'Verifique se o servidor está disponível.');
+      }
+    }
+
+    function voltarAuditoria() {
+      mostrarTela('tela-tipologias');
+      stateAudit.tipologiaAtiva = null;
+      setBreadcrumb(null);
+    }
+
+    function setView(modo, force = false) {
+      if (stateAudit.viewMode === modo && !force) return;
+      stateAudit.viewMode = modo;
+      $('btn-agrupado').classList.toggle('active', modo === 'agrupado');
+      $('btn-lista').classList.toggle('active', modo === 'lista');
+      if (stateAudit.dadosAgrupados !== null) renderViewAtual();
+    }
+
+    function renderViewAtual() {
+      stateAudit.viewMode === 'agrupado'
+        ? renderAgrupado(stateAudit.dadosAgrupados)
+        : renderLista(stateAudit.dadosLista);
+    }
+
+    function renderAgrupado(secoes) {
+      const c = $('perguntas-content');
+      c.innerHTML = '';
+      if (!secoes || secoes.length === 0) { c.innerHTML = emptyHTML('📂', 'Nenhuma seção encontrada', ''); return; }
+      secoes.forEach((s, si) => {
+        const b = document.createElement('div');
+        b.className = 'secao';
+        b.style.animationDelay = `${si * 45}ms`;
+        b.innerHTML = `
+          <div class="secao-titulo">
+            ${esc(s.titulo)}
+            <span class="secao-ct">${s.perguntas?.length ?? 0} perguntas</span>
+          </div>
+          <div class="plist">${(s.perguntas || []).map((p, i) => pHTML(p, i + 1)).join('')}</div>`;
+        c.appendChild(b);
+      });
+      bindClicks(c);
+    }
+
+    function renderLista(perguntas) {
+      const c = $('perguntas-content');
+      c.innerHTML = '';
+      if (!perguntas || perguntas.length === 0) { c.innerHTML = emptyHTML('📂', 'Nenhuma pergunta encontrada', ''); return; }
+      const w = document.createElement('div');
+      w.className = 'plist plist-s';
+      w.innerHTML = perguntas.map((p, i) => pHTML(p, i + 1)).join('');
+      c.appendChild(w);
+      bindClicks(c);
+    }
+
+    function pHTML(p, n) {
+      const tem = p.significado && p.significado.trim().length > 0;
+      return `<div class="pitem"
+          data-p="${escA(p.pergunta)}" data-s="${escA(p.significado || '')}" data-tem="${tem}"
+          role="button" tabindex="0">
+        <span class="pnum">${n}</span>
+        <div class="pbody">
+          <p class="ptexto">${esc(p.pergunta)}</p>
+          ${tem ? '<p class="phint">Ver significado →</p>' : ''}
+        </div>
+        ${tem ? '<span class="picon">ⓘ</span>' : ''}
+      </div>`;
+    }
+
+    function bindClicks(c) {
+      c.querySelectorAll('.pitem[data-tem="true"]').forEach(el => {
+        el.addEventListener('click', () => abrirModal(el.dataset.p, el.dataset.s, false));
+        el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') abrirModal(el.dataset.p, el.dataset.s, false); });
+      });
+    }
+
+    /* ══════════════════════════════════════════════
+       MODELO DE SERVIÇO
+    ══════════════════════════════════════════════ */
+    let modeloCarregado = false;
+
+    async function carregarModelo() {
+      if (modeloCarregado) return;
+      const c = $('modelo-content');
+      try {
+        const res = await fetch(API_MODELO);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        modeloCarregado = true;
+        renderModelo(data);
+      } catch {
+        c.innerHTML = emptyHTML('⚠️', 'Não foi possível carregar o modelo.', 'Verifique se o servidor está disponível.');
+      }
+    }
+
+    function renderModelo(secoes) {
+      const c = $('modelo-content');
+      c.innerHTML = '';
+
+      if (!secoes || secoes.length === 0) {
+        c.innerHTML = emptyHTML('📂', 'Nenhuma seção encontrada', 'O servidor não retornou dados.');
+        return;
+      }
+
+      const wrap = document.createElement('div');
+      wrap.className = 'ms-secoes';
+
+      secoes.forEach((s, si) => {
+        const bloco = document.createElement('div');
+        bloco.className = 'ms-secao';
+        bloco.style.animationDelay = `${si * 60}ms`;
+
+        const titulos = s.titulos || [];
+        const titulosHTML = titulos.map((t, i) => {
+          const temSig = t.significado && t.significado.trim().length > 0;
+          return `<div class="ms-titulo-item"
+              data-t="${escA(t.titulo)}" data-s="${escA(t.significado || '')}" data-tem="${temSig}"
+              role="button" tabindex="0">
+            <span class="ms-tnum">${i + 1}</span>
+            <div class="ms-tbody">
+              <p class="ms-ttexto">${esc(t.titulo)}</p>
+              ${temSig ? '<p class="ms-thint">Ver significado →</p>' : ''}
+            </div>
+            ${temSig ? '<span class="ms-ticon">ⓘ</span>' : ''}
+          </div>`;
+        }).join('');
+
+        bloco.innerHTML = `
+          <div class="ms-secao-hdr" onclick="toggleSecaoMS(this)">
+            <div class="ms-secao-bar"></div>
+            <span class="ms-secao-nome">${esc(s.secao)}</span>
+            <span class="ms-secao-ct">${titulos.length} ${titulos.length === 1 ? 'título' : 'títulos'}</span>
+            <span class="ms-chevron">▾</span>
+          </div>
+          <div class="ms-titulos">${titulosHTML}</div>`;
+
+        wrap.appendChild(bloco);
+      });
+
+      c.appendChild(wrap);
+
+      // bind clicks dos títulos
+      c.querySelectorAll('.ms-titulo-item[data-tem="true"]').forEach(el => {
+        el.addEventListener('click', () => abrirModal(el.dataset.t, el.dataset.s, true));
+        el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') abrirModal(el.dataset.t, el.dataset.s, true); });
+      });
+    }
+
+    function toggleSecaoMS(hdr) {
+      hdr.closest('.ms-secao').classList.toggle('collapsed');
+    }
+
+    /* ══════════════════════════════════════════════
+       MODAL (compartilhado)
+    ══════════════════════════════════════════════ */
+    function abrirModal(titulo, sig, isModelo = false) {
+      $('modal-pergunta').textContent = titulo;
+      $('modal-significado').textContent = sig.replace(/\\n/g, '\n');
+      $('modal-tag-label').textContent = 'Significado';
+      $('modal-tag-label').className = isModelo ? 'modal-tag green' : 'modal-tag';
+      $('modal-box').className = isModelo ? 'modal green-modal' : 'modal blue-modal';
+      $('modal-x-btn').className = isModelo ? 'modal-x green' : 'modal-x';
+      $('modal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function fecharModal(e) {
+      if (e && e.target !== $('modal') && !e.target.closest('.modal-x')) return;
+      $('modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') fecharModal({ target: $('modal') });
+    });
+
+    /* ══════════════════════════════════════════════
+       INIT
+    ══════════════════════════════════════════════ */
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarTipologias();
+    });
+  </script>
+</body>
+</html>
