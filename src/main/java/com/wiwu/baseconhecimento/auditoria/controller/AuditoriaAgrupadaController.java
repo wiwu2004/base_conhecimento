@@ -25,10 +25,6 @@ public class AuditoriaAgrupadaController {
         List<PerguntaAuditoriaEntity> perguntas =
                 repository.buscarPorTipologiaOrdenadoPorSecao(codigoTipologia);
 
-        if (perguntas.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
         Map<String, List<PerguntaAuditoriaDTO>> agrupadas = new LinkedHashMap<>();
 
         for (PerguntaAuditoriaEntity p : perguntas) {

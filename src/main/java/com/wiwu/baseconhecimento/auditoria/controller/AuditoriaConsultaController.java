@@ -43,10 +43,8 @@ public class AuditoriaConsultaController {
                         p.getSignificado()
                 ))
                 .toList();
-        if (perguntas.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(perguntas);
+
     }
 
 
